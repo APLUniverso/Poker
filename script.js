@@ -7,6 +7,9 @@ const winPanel = document.getElementById("winPanel")
 const mp1 = document.getElementById("mePlantoP1")
 const mp2 = document.getElementById("mePlantoP2")
 
+const pP1 = document.getElementById("perdioP1")
+const pP2 = document.getElementById("perdioP2")
+
 let deckId = ""
 async function InicioDelJuego() {
     const mazoNuevo = await fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
@@ -36,19 +39,11 @@ async function sacarCartaDelMazo() {
     return dataCarta
 }
 
-function crearImagen(url,player){
+function crearImagen(url){
     const img = document.createElement("img");
     img.src = url
 
-    if(player === "player1"){
-        img.style.top = "5px";
-        img.style.left = "5px";
-    }else if(player == "player2"){
-        img.style.bottom = "5px";
-        img.style.right = "5px";
-    }
-
-    img.style.animation = "sacarCarta 2s "
+    img.classList.add("card")
 
     return img
 }
@@ -61,10 +56,27 @@ async function colocarCartaMesa(carta,player){
     const numeroCartas = data.piles[player].remaining;
     const angulo = numeroCartas*15
 
-    const img = crearImagen(carta.image,player)
-    img.style.transform = `rotate(${angulo}deg)`;
-
+    const img = crearImagen(carta.image)
     mesa.appendChild(img)
+
+    let x = 0;
+    let y = 0;
+
+    if(player === "player1"){
+        x = -200;
+        y = -120;
+    } else {
+        x = 200;
+        y = 120;
+    }
+
+    img.offsetHeight;
+    img.style.transition = "transform 0.6s ease-out";
+    img.style.transform = `
+        translate(-50%, -50%) 
+        translate(${x}px, ${y}px)
+        rotate(${angulo}deg)
+    `;
 } 
 
 async function  agregarCartaNuevaPila(player,carta) {
@@ -104,16 +116,14 @@ async function accionPlayer() {
     const puntajePlayer = await getPuntaje(player)
     console.log(puntajePlayer)
     if (puntajePlayer > 21){
-        imgFuera = crearImagen("./media/eliminado.webp",player)
-        imgFuera.classList.add("imgFuera")
-        mesa.appendChild(imgFuera,player)
-
         if (player == "player1"){
+            pP1.classList.remove("invisible")
             winPanel.innerHTML += `
                 <h1>GANADOR PLAYER 2</h1>
             `;
             winPanel.classList.remove("invisible") 
         }else{
+            pP2.classList.remove("invisible")
             winPanel.innerHTML += `
                 <h1>GANADOR PLAYER 1</h1>
             `;
@@ -153,7 +163,7 @@ async function finDelJuego(){
             jugador:index+1,
             diferencia:21-puntaje
         })).filter(puntaje => puntaje.diferencia >= 0 )
-           .sort((a, b) => a.diferencia - b.diferencia);
+            .sort((a, b) => a.diferencia - b.diferencia);
 
         winPanel.innerHTML += `<h1>GANADOR PLAYER ${ganador[0].jugador}</h1>`
     }

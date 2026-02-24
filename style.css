@@ -19,6 +19,7 @@ body{
 
 #winPanel{
     position: absolute;
+    z-index: 1000;
 
     display: flex;
     flex-direction: column;
@@ -74,12 +75,19 @@ body{
     box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
 }
 
-#mesa img{
-    width: 100px;
+.card{
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 100px;
 }
 
 #mesa .mazo{
+    position: absolute;
+    width: 100px;
+
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -99,17 +107,19 @@ body{
 /*IMAGEN DE CUNADO EL PAYER SE PASA*/
 
 .imgFuera{
-    width: 100px;
+    position: absolute;
+    z-index: 100;
+
+    width: 150px;
     height: 150px;
 }
 
-@keyframes sacarCarta {
-    0%{
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%,-50%);
-    }
-    100%{
-        transform: translate(0);
-    }
+#perdioP1{
+    top: 5px;
+    left: -20px;
+}
+
+#perdioP2{
+    bottom: 5px;
+    right: -20px;
 }

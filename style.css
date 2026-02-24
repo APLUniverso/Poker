@@ -95,3 +95,10 @@ body{
 .intocable{
     pointer-events: none;
 }
+
+/*IMAGEN DE CUNADO EL PAYER SE PASA*/
+
+.imgFuera{
+    width: 100px;
+    height: 150px;
+}

@@ -48,6 +48,8 @@ function crearImagen(url,player){
         img.style.right = "5px";
     }
 
+    img.style.animation = "sacarCarta 2s "
+
     return img
 }
 

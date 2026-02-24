@@ -1,0 +1,97 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/*ESTILO PANEL DE VICTORIA*/
+
+#winPanel{
+    position: absolute;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 400px;
+    height: 200px;
+    
+    background-image: url(./media/texturaPergamino.avif);
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ESTILO DE LOS BOTONES */
+
+.btn{
+    position: absolute;
+
+    width: 100px;
+    height: 30px;
+
+    background-color: #442803;
+    color: white;
+}
+
+#mePlantoP1{
+    top: 180px;
+    left: 10px;
+}
+
+#mePlantoP2{
+    bottom: 180px;
+    right: 10px;
+}
+
+/*ESTILO DE LA MESA*/
+
+#mesa{
+    position: relative;
+
+    width: 500px;
+    height: 400px;
+
+    background-image: url(./media/texturaMesa.avif);
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+}
+
+#mesa img{
+    width: 100px;
+    position: absolute;
+}
+
+#mesa .mazo{
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/*CLASE PARA DESAPARECER COSAS*/
+
+.invisible{
+    opacity: 0;
+    pointer-events: none;
+}
+
+.intocable{
+    pointer-events: none;
+}

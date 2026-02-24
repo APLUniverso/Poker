@@ -100,17 +100,22 @@ async function accionPlayer() {
     await colocarCartaMesa(playerCartas.cards[0],player)
 
     const puntajePlayer = await getPuntaje(player)
+    console.log(puntajePlayer)
     if (puntajePlayer > 21){
         imgFuera = crearImagen("./media/eliminado.webp",player)
         imgFuera.classList.add("imgFuera")
         mesa.appendChild(imgFuera,player)
 
         if (player == "player1"){
-            pararPlayer1 = true;
-            turnoPlayer.textContent = "TURNO DE PLAYER 2"
+            winPanel.innerHTML += `
+                <h1>GANADOR PLAYER 2</h1>
+            `;
+            winPanel.classList.remove("invisible") 
         }else{
-            pararPlayer2 = true;
-            turnoPlayer.textContent = "TURNO DE PLAYER 1"
+            winPanel.innerHTML += `
+                <h1>GANADOR PLAYER 1</h1>
+            `;
+            winPanel.classList.remove("invisible") 
         }
     }
 }

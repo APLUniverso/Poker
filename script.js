@@ -11,6 +11,7 @@ const pP1 = document.getElementById("perdioP1")
 const pP2 = document.getElementById("perdioP2")
 
 let deckId = ""
+let players;
 async function InicioDelJuego() {
     const mazoNuevo = await fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
     const infoMazo = await mazoNuevo.json();
@@ -28,7 +29,23 @@ async function InicioDelJuego() {
         await agregarCartaNuevaPila("player2",player1Cartas.cards[0])
         await colocarCartaMesa(player1Cartas.cards[0],"player2")
     }
-    
+
+    players = {
+        p1:{
+            id : 1,
+            name : "player1",
+            turn : true,
+            status : "playing",
+            score : await getPuntaje("player1")
+        },
+        p2:{
+            id : 2,
+            name : "player2",
+            turno : false,
+            status : "waiting",
+            score : await getPuntaje("player2") 
+        }
+    } 
 }
 
 async function sacarCartaDelMazo() {
@@ -70,7 +87,7 @@ async function colocarCartaMesa(carta,player){
         y = 120;
     }
 
-    img.offsetHeight;
+    void img.offsetHeight;
     img.style.transition = "transform 0.6s ease-out";
     img.style.transform = `
         translate(-50%, -50%) 
@@ -85,36 +102,36 @@ async function  agregarCartaNuevaPila(player,carta) {
 
 InicioDelJuego();
 
-let turno = 0
-let pararPlayer1 = false
-let pararPlayer2 = false
 async function accionPlayer() {
     let player = ""
-    turno += 1
 
-    if(pararPlayer1){
-        player = "player2"
-        
-        turnoPlayer.textContent = "TURNO DE PLAYER 2"
-    } else if(pararPlayer2){
-        player = "player1"
-        turnoPlayer.textContent = "TURNO DE PLAYER 1"
-    } else{
-        if (turno%2 == 0){
-            player = "player2"
-            turnoPlayer.textContent = "TURNO DE PLAYER 1"
-        }else{
-            player = "player1"
-            turnoPlayer.textContent = "TURNO DE PLAYER 2"
-        }
+    let cartaSacada = await sacarCartaDelMazo()
+    console.log(players)
+    if(players.p1.turn){
+        player = players.p1.name;
+        players.p1.status = "waiting";
+        players.p2.status = "playing";
+        players.p1.turn = false
+        players.p2.turn = true
+
+        turnoPlayer.textContent = `GANADOR PLAYER ${players.p1.id}`;
     }
 
-    let playerCartas = await sacarCartaDelMazo()
-    await agregarCartaNuevaPila(player,playerCartas.cards[0])
-    await colocarCartaMesa(playerCartas.cards[0],player)
+    if(players.p2.turn){
+        player = players.p2.name;
+        players.p2.status = "waiting";
+        players.p1.status = "playing";
+        players.p2.turn = false
+        players.p1.turn = true
+
+        turnoPlayer.textContent = `GANADOR PLAYER ${players.p2.id}`;
+    }
+
+    await agregarCartaNuevaPila(player,cartaSacada.cards[0])
+    await colocarCartaMesa(cartaSacada.cards[0],player)
 
     const puntajePlayer = await getPuntaje(player)
-    console.log(puntajePlayer)
+    
     if (puntajePlayer > 21){
         if (player == "player1"){
             pP1.classList.remove("invisible")
@@ -130,6 +147,8 @@ async function accionPlayer() {
             winPanel.classList.remove("invisible") 
         }
     }
+
+    console.log(puntajePlayer)
 }
 
 async function getPuntaje(player){
@@ -149,6 +168,7 @@ async function getPuntaje(player){
         total -= 10;
         ases--;
     }
+
     return total
 }
 

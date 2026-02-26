@@ -10,50 +10,13 @@ const mp2 = document.getElementById("mePlantoP2")
 const pP1 = document.getElementById("perdioP1")
 const pP2 = document.getElementById("perdioP2")
 
+const indicador = document.getElementById("flecha")
+
 let deckId = ""
 let players;
-async function InicioDelJuego() {
-    const mazoNuevo = await fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
-    const infoMazo = await mazoNuevo.json();
 
-    deckId = infoMazo.deck_id;
-
-    for (let i = 0; i < 2; i++) {
-        let player1Cartas = await sacarCartaDelMazo()
-        await agregarCartaNuevaPila("player1",player1Cartas.cards[0])
-        await colocarCartaMesa(player1Cartas.cards[0],"player1")
-    }
-
-    for (let i = 0; i < 2; i++) {
-        let player1Cartas = await sacarCartaDelMazo()
-        await agregarCartaNuevaPila("player2",player1Cartas.cards[0])
-        await colocarCartaMesa(player1Cartas.cards[0],"player2")
-    }
-
-    players = {
-        p1:{
-            id : 1,
-            name : "player1",
-            turn : true,
-            status : "playing",
-            score : await getPuntaje("player1")
-        },
-        p2:{
-            id : 2,
-            name : "player2",
-            turno : false,
-            status : "waiting",
-            score : await getPuntaje("player2") 
-        }
-    } 
-}
-
-async function sacarCartaDelMazo() {
-    const carta = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
-    const dataCarta = await carta.json();
-
-    if(dataCarta.remaining === 0)mazoBoton.classList.add("invisible");
-    return dataCarta
+function obtenerMenor(array) {
+    return Math.min(...array);
 }
 
 function crearImagen(url){
@@ -65,30 +28,30 @@ function crearImagen(url){
     return img
 }
 
-async function colocarCartaMesa(carta,player){
-    const response = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/pile/${player}/list/`);
-    const data = await response.json();
+async function colocarCartaMesa(player,nCartas){
+    const carta = await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
+    const dataCarta = await carta.json();
 
-    //ARREGLAR COMO SE VEN LAS CARTAS EN LA MANO DEL JUGADOR
-    const numeroCartas = data.piles[player].remaining;
-    const angulo = numeroCartas*15
+    await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/pile/${player}/add/?cards=${dataCarta.cards[0].code}`);
 
-    const img = crearImagen(carta.image)
+    const angulo = nCartas * 10 - 10
+    const img = crearImagen(dataCarta.cards[0].image)
     mesa.appendChild(img)
 
     let x = 0;
     let y = 0;
 
     if(player === "player1"){
-        x = -200;
-        y = -120;
+        x = -280;
+        y = -220;
     } else {
-        x = 200;
-        y = 120;
+        x = 280;
+        y = 220;
     }
 
     void img.offsetHeight;
     img.style.transition = "transform 0.6s ease-out";
+    img.style.transformOrigin = "bottom left";
     img.style.transform = `
         translate(-50%, -50%) 
         translate(${x}px, ${y}px)
@@ -96,59 +59,19 @@ async function colocarCartaMesa(carta,player){
     `;
 } 
 
-async function  agregarCartaNuevaPila(player,carta) {
-    await fetch(`https://deckofcardsapi.com/api/deck/${deckId}/pile/${player}/add/?cards=${carta.code}`);
-}
 
-InicioDelJuego();
-
-async function accionPlayer() {
-    let player = ""
-
-    let cartaSacada = await sacarCartaDelMazo()
-    console.log(players)
-    if(players.p1.turn){
-        player = players.p1.name;
-        players.p1.status = "waiting";
-        players.p2.status = "playing";
-        players.p1.turn = false
-        players.p2.turn = true
-
-        turnoPlayer.textContent = `GANADOR PLAYER ${players.p1.id}`;
-    }
-
-    if(players.p2.turn){
-        player = players.p2.name;
-        players.p2.status = "waiting";
-        players.p1.status = "playing";
-        players.p2.turn = false
-        players.p1.turn = true
-
-        turnoPlayer.textContent = `GANADOR PLAYER ${players.p2.id}`;
-    }
-
-    await agregarCartaNuevaPila(player,cartaSacada.cards[0])
-    await colocarCartaMesa(cartaSacada.cards[0],player)
-
-    const puntajePlayer = await getPuntaje(player)
+async function actualizarData(turn1,turn2,status1,status2,nc1=0,nc2=0) {
+    players.p1.turn = turn1
+    players.p2.turn = turn2
     
-    if (puntajePlayer > 21){
-        if (player == "player1"){
-            pP1.classList.remove("invisible")
-            winPanel.innerHTML += `
-                <h1>GANADOR PLAYER 2</h1>
-            `;
-            winPanel.classList.remove("invisible") 
-        }else{
-            pP2.classList.remove("invisible")
-            winPanel.innerHTML += `
-                <h1>GANADOR PLAYER 1</h1>
-            `;
-            winPanel.classList.remove("invisible") 
-        }
-    }
+    players.p1.status = status1
+    players.p2.status = status2
 
-    console.log(puntajePlayer)
+    players.p1.score = await getPuntaje("player1")
+    players.p2.score = await getPuntaje("player2")
+
+    players.p1.nCartas += nc1
+    players.p2.nCartas += nc2
 }
 
 async function getPuntaje(player){
@@ -172,42 +95,108 @@ async function getPuntaje(player){
     return total
 }
 
-async function finDelJuego(){
-    mazoBoton.classList.add("intocable")
+async function InicioDelJuego() {
+    const mazoNuevo = await fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
+    const infoMazo = await mazoNuevo.json();
 
-    const puntajes = [await getPuntaje("player1"),await getPuntaje("player2")]
-    if (puntajes[0] == puntajes[1]){
+    deckId = infoMazo.deck_id;
+
+    for (let i = 1; i < 3; i++) {
+        await colocarCartaMesa("player1",i)
+        await colocarCartaMesa("player2",i)
+    }
+
+    players = {
+        p1:{
+            id : 1,
+            name : "player1",
+            turn : true,
+            status : "playing",
+            score : await getPuntaje("player1"),
+            nCartas : 2
+        },
+        p2:{
+            id : 2,
+            name : "player2",
+            turn : false,
+            status : "waiting",
+            score : await getPuntaje("player2"),
+            nCartas : 2
+        }
+    } 
+}
+
+
+async function accionPlayer() {
+    let player = Object.values(players).find(p => p.status == "playing")
+
+    await colocarCartaMesa((player.name),(player.nCartas + 1))
+    player.score = await getPuntaje(player.name)
+    
+    if(players.p1.status == "plantado"){
+        await actualizarData(false,true,"plantado","playing",0,1)
+    }else if(players.p2.status == "plantado"){
+        await actualizarData(true,false,"playing","plantado",1,0)
+    }else if(players.p1.turn){
+        await actualizarData(false,true,"waiting","playing",1,0)
+        turnoPlayer.textContent = `TURNO DE PLAYER ${players.p2.id}`;
+        indicador.style.transform = "translate(-50%, -50%) rotate(180deg)"
+    }else if(players.p2.turn){
+        await actualizarData(true,false,"playing","waiting",0,1)
+        turnoPlayer.textContent = `TURNO DE PLAYER ${players.p1.id}`;
+        indicador.style.transform = "translate(-50%, -50%) rotate(0deg)"
+    }else{
+        finDelJuego()
+    }
+
+    if (player.score > 21){
+        winPanel.innerHTML += `
+                <h1>EL PLAYER ${player.id} SE PASO</h1>
+            `;
+        winPanel.classList.remove("invisible") 
+    }
+}
+
+async function finDelJuego(){
+    const mismoScore = Object.values(players).every(p => {
+        return p.score === players.p1.score;
+    });
+
+    const puntajes = Object.values(players).map(p => p.score).map(s => 21 - s)
+
+    if (mismoScore){
         winPanel.innerHTML += `<h1>EMPATAODOS</h1>`
     }else{
-        const ganador = puntajes.map((puntaje,index) => ({
-            jugador:index+1,
-            diferencia:21-puntaje
-        })).filter(puntaje => puntaje.diferencia >= 0 )
-            .sort((a, b) => a.diferencia - b.diferencia);
-
-        winPanel.innerHTML += `<h1>GANADOR PLAYER ${ganador[0].jugador}</h1>`
+        const idGanador = puntajes.indexOf(obtenerMenor(puntajes))
+        winPanel.innerHTML += `<h1>GANADOR PLAYER ${idGanador+1}</h1>`
     }
 
     winPanel.innerHTML += `
-        <h2>PLAYER 1: ${puntajes[0]} puntos</h2>
-        <h2>PLAYER 2: ${puntajes[1]} puntos</h2>
+        <h2>PLAYER 1: ${players.p1.score} puntos</h2>
+        <h2>PLAYER 2: ${players.p2.score} puntos</h2>
     `;
     winPanel.classList.remove("invisible")  
 }
 
+InicioDelJuego();
+
 mazoBoton.addEventListener("click",accionPlayer)
 
 mp1.addEventListener("click",()=>{
-    pararPlayer1 = true;
+    players.p1.status = "plantado"
     turnoPlayer.textContent = "TURNO DE PLAYER 2";
-    if (pararPlayer2){
+    indicador.style.transform = "translate(-50%, -50%) rotate(180deg)"
+    if (players.p2.status == "plantado"){
         finDelJuego();
     }
+    players.p2.status = "playing"
 })
 mp2.addEventListener("click",()=>{
-    pararPlayer2 = true;
+    players.p2.status = "plantado"
     turnoPlayer.textContent = "TURNO DE PLAYER 1";
-    if (pararPlayer1){
+    indicador.style.transform = "translate(-50%, -50%) rotate(0deg)"
+    if (players.p1.status == "plantado"){
         finDelJuego();
     }
+    players.p1.status = "playing"
 })
